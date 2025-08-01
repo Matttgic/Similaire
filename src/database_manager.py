@@ -289,7 +289,7 @@ class DatabaseManager:
                         is_settled = COALESCE(excluded.is_settled, is_settled),
                         last_updated = excluded.last_updated,
                         odds_vector = COALESCE(excluded.odds_vector, odds_vector),
-                        data_quality_score = GREATEST(excluded.data_quality_score, data_quality_score)
+                        data_quality_score = COALESCE(excluded.data_quality_score, data_quality_score)
                 ''', (
                     match_data.get('event_id'),
                     match_data.get('sport_id', 1),
