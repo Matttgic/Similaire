@@ -943,7 +943,7 @@ def main():
             with col4:
                 if st.button("❌ Fermer"):
                     st.session_state.show_stats = False
-                    st.experimental_rerun()
+                    st.rerun()
     
     # Récupérer et afficher les matchs du jour avec prédictions
     today_matches_df = db_manager.get_today_matches()
