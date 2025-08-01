@@ -184,7 +184,6 @@ async def get_metrics():
     }
 
 @app.post("/api/similarity/analyze")
-@monitor.monitor_function("similarity_analysis", "api")
 async def analyze_similarity(request: SimilarityRequest):
     """Analyse la similarité pour des cotes données"""
     try:
