@@ -957,7 +957,7 @@ def main():
             for match in demo_matches:
                 db_manager.save_match(match)
             st.success("✅ Matchs de démonstration créés!")
-            st.experimental_rerun()
+            st.rerun()
     else:
         st.header(f"⚽ {len(today_matches_df)} matchs programmés aujourd'hui")
         
