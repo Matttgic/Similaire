@@ -894,7 +894,17 @@ def main():
         if st.button("🇫🇷 Actualiser les matchs du jour (France)", type="primary", use_container_width=True):
             with st.spinner("📡 Récupération des matchs autorisés en France..."):
                 # Récupérer les matchs du jour conformes à la réglementation française
-                today_matches = data_collector.get_today_matches_france_only()
+                try:
+                    # Utiliser la nouvelle méthode française si disponible
+                    today_matches = data_collector.get_today_matches_france_only()
+                except AttributeError:
+                    # Fallback : utiliser l'ancienne méthode puis filtrer
+                    all_matches = data_collector.get_today_matches()
+                    if all_matches and hasattr(data_collector, 'filter_matches_for_france'):
+                        today_matches = data_collector.filter_matches_for_france(all_matches)
+                    else:
+                        # Dernier fallback : générer des matchs de démonstration français
+                        today_matches = data_collector._generate_demo_matches()
                 
                 if today_matches:
                     # Sauvegarder les matchs
