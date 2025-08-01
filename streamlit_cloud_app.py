@@ -16,6 +16,10 @@ from scipy.spatial.distance import euclidean
 import hashlib
 import threading
 from pathlib import Path
+import warnings
+
+# Supprimer les warnings pour un affichage plus propre
+warnings.filterwarnings('ignore')
 
 # Configuration de la page
 st.set_page_config(
@@ -28,7 +32,7 @@ st.set_page_config(
 # Configuration
 class Config:
     # API Configuration - utilise les secrets Streamlit
-    RAPIDAPI_KEY = st.secrets.get("RAPIDAPI_KEY", "demo_key")
+    RAPIDAPI_KEY = st.secrets.get("RAPIDAPI_KEY", "demo_key") if hasattr(st, 'secrets') and st.secrets else "demo_key"
     RAPIDAPI_HOST = 'pinnacle-odds.p.rapidapi.com'
     BASE_URL = 'https://pinnacle-odds.p.rapidapi.com'
     
