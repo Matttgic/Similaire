@@ -10,6 +10,7 @@ import os
 import sys
 import time
 import json
+import numpy as np
 from datetime import datetime
 from unittest.mock import Mock, patch, MagicMock
 
