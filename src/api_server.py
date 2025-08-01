@@ -245,7 +245,6 @@ async def analyze_similarity(request: SimilarityRequest):
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/api/similarity/methods")
-@monitor.monitor_function("get_similarity_methods", "api")
 async def get_similarity_methods():
     """Récupère la liste des méthodes de similarité disponibles"""
     return {
