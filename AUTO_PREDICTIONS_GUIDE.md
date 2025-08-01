@@ -167,6 +167,171 @@ git push origin main
 - 💡 **Parieurs occasionnels** : Recommandations guidées
 - 🏢 **Professionnels** : API et données structurées
 
+## 🌐 INTÉGRATION API EXTERNE
+
+### **Accès Programmatique**
+L'application dispose d'une **API REST complète** pour les intégrations externes :
+
+```
+📡 API Base URL: http://localhost:8000/api
+📚 Documentation: http://localhost:8000/api/docs
+```
+
+### **Endpoints Principaux**
+
+#### **🔍 Analyse de Similarité**
+```python
+POST /api/similarity/analyze
+```
+**Utilisation :** Analyser la similarité pour des cotes données
+```python
+import requests
+
+response = requests.post(
+    "http://localhost:8000/api/similarity/analyze",
+    json={
+        "odds": {
+            "home": 2.1,
+            "draw": 3.4,
+            "away": 3.2,
+            "over_25": 1.85,
+            "under_25": 1.95
+        },
+        "method": "cosine",
+        "threshold": 0.90,
+        "min_matches": 10
+    }
+)
+```
+
+#### **📊 Statistiques Base de Données**
+```python
+GET /api/database/stats
+```
+**Utilisation :** Récupérer les statistiques de la base de données
+```python
+response = requests.get("http://localhost:8000/api/database/stats")
+stats = response.json()
+print(f"Total matches: {stats['stats']['total_matches']}")
+```
+
+#### **🏥 Santé du Système**
+```python
+GET /api/health
+```
+**Utilisation :** Vérifier l'état de l'API et du système
+```python
+health = requests.get("http://localhost:8000/api/health").json()
+print(f"Status: {health['status']}")
+print(f"Uptime: {health['uptime']} seconds")
+```
+
+### **Cas d'Usage API**
+
+#### **🤖 Bot de Trading Automatique**
+```python
+import requests
+import time
+
+class TradingBot:
+    def __init__(self):
+        self.api_url = "http://localhost:8000/api"
+    
+    def get_daily_predictions(self):
+        # Récupérer les stats pour connaître les matchs disponibles
+        stats = requests.get(f"{self.api_url}/database/stats").json()
+        
+        # Analyser chaque match du jour
+        predictions = []
+        for match_odds in self.get_today_matches():
+            result = requests.post(
+                f"{self.api_url}/similarity/analyze",
+                json={
+                    "odds": match_odds,
+                    "method": "cosine",
+                    "threshold": 0.85,
+                    "min_matches": 15
+                }
+            ).json()
+            
+            if result['success'] and result['analysis']['confidence'] > 80:
+                predictions.append({
+                    "match": match_odds,
+                    "prediction": result['analysis'],
+                    "confidence": result['analysis']['confidence']
+                })
+        
+        return predictions
+    
+    def execute_trades(self, predictions):
+        for pred in predictions:
+            if pred['confidence'] > 85:
+                print(f"🟢 TRADE: {pred['prediction']} - Confiance: {pred['confidence']}%")
+```
+
+#### **📈 Monitoring et Alertes**
+```python
+def monitor_system():
+    # Vérifier la santé du système
+    health = requests.get(f"{api_url}/health").json()
+    
+    if health['status'] != 'healthy':
+        send_alert(f"⚠️ Système en panne: {health}")
+    
+    # Vérifier les métriques de performance
+    metrics = requests.get(f"{api_url}/metrics").json()
+    
+    if metrics['system_metrics']['memory_usage'] > 80:
+        send_alert(f"🔴 Mémoire élevée: {metrics['system_metrics']['memory_usage']}%")
+```
+
+#### **🔄 Intégration Webhook**
+```python
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route('/webhook/predictions', methods=['POST'])
+def receive_predictions():
+    data = request.json
+    
+    # Traitement automatique des nouvelles prédictions
+    for prediction in data['predictions']:
+        if prediction['confidence'] > 90:
+            # Action automatique pour haute confiance
+            execute_high_confidence_trade(prediction)
+        elif prediction['confidence'] > 70:
+            # Notification pour confiance modérée
+            send_notification(prediction)
+    
+    return {"status": "processed"}
+```
+
+### **📚 Documentation Complète**
+**Fichier détaillé :** `/app/API_DOCUMENTATION.md`
+- 🛠️ **Guide complet** : Tous les endpoints avec exemples
+- 🐍 **Code Python** : Exemples prêts à utiliser  
+- 🌐 **JavaScript** : Intégration web
+- 📋 **cURL** : Tests en ligne de commande
+- ⚡ **Performance** : Métriques et monitoring
+
+### **🔧 Démarrage de l'API**
+```bash
+# Démarrer l'API FastAPI
+cd /app
+python src/api_server.py
+
+# L'API sera disponible sur:
+# - http://localhost:8000/api/docs (Documentation interactive)
+# - http://localhost:8000/api/health (Test de santé)
+```
+
+### **⚠️ Notes Importantes**
+- 🔒 **Sécurité** : En production, implémenter l'authentification API
+- 📊 **Rate Limiting** : Limiter les requêtes pour éviter les abus
+- 🔄 **Cache** : Les résultats de similarité sont mis en cache
+- 📈 **Monitoring** : Surveillance automatique des performances
+
 ---
 
 **🔮 Transformation complète réussie - De l'analyse manuelle au trading automatique !**
