@@ -422,23 +422,27 @@ class PinnacleDataCollector:
         return matches
     
     def _generate_demo_matches(self) -> List[Dict[str, Any]]:
-        """Génère des matchs de démonstration pour aujourd'hui"""
+        """Génère des matchs de démonstration pour aujourd'hui - FRANCE UNIQUEMENT"""
         today = datetime.now().strftime('%Y-%m-%d')
         
         demo_matches = []
-        leagues = ['Premier League', 'La Liga', 'Serie A', 'Bundesliga', 'Ligue 1']
-        teams = {
+        # Ligues autorisées en France pour les paris sportifs
+        french_authorized_leagues = {
+            'Ligue 1': ['PSG', 'Lyon', 'Marseille', 'Monaco', 'Nice', 'Rennes', 'Lille', 'Montpellier', 'Strasbourg', 'Nantes'],
             'Premier League': ['Arsenal', 'Chelsea', 'Liverpool', 'Man City', 'Man United', 'Tottenham', 'Brighton', 'Newcastle'],
             'La Liga': ['Barcelona', 'Real Madrid', 'Atletico', 'Valencia', 'Sevilla', 'Betis', 'Villarreal', 'Real Sociedad'],
             'Serie A': ['Juventus', 'Milan', 'Inter', 'Napoli', 'Roma', 'Lazio', 'Atalanta', 'Fiorentina'],
             'Bundesliga': ['Bayern', 'Dortmund', 'Leipzig', 'Leverkusen', 'Frankfurt', 'Wolfsburg', 'Stuttgart', 'Hoffenheim'],
-            'Ligue 1': ['PSG', 'Lyon', 'Marseille', 'Monaco', 'Nice', 'Rennes', 'Lille', 'Montpellier']
+            'Champions League': ['PSG', 'Monaco', 'Barcelona', 'Real Madrid', 'Bayern', 'Man City', 'Liverpool', 'Milan']
         }
         
-        # Générer 12 matchs pour aujourd'hui
+        # Note: En France, seuls certains championnats sont autorisés pour les paris en ligne
+        # selon la réglementation ARJEL/ANJ
+        
+        # Générer 12 matchs pour aujourd'hui (ligues autorisées en France)
         for i in range(12):
-            league = random.choice(leagues)
-            league_teams = teams[league]
+            league = random.choice(list(french_authorized_leagues.keys()))
+            league_teams = french_authorized_leagues[league]
             
             team1 = random.choice(league_teams)
             team2 = random.choice([t for t in league_teams if t != team1])
@@ -454,7 +458,7 @@ class PinnacleDataCollector:
             away_prob = away_strength / total_prob
             draw_prob = draw_prob / total_prob
             
-            # Ajouter marge bookmaker
+            # Ajouter marge bookmaker (typique des opérateurs français)
             margin = random.uniform(1.05, 1.12)
             home_odds = round((1 / home_prob) * margin, 2)
             draw_odds = round((1 / draw_prob) * margin, 2)
@@ -481,7 +485,9 @@ class PinnacleDataCollector:
                 'draw_odds': draw_odds,
                 'away_odds': away_odds,
                 'over_25_odds': over_25_odds,
-                'under_25_odds': under_25_odds
+                'under_25_odds': under_25_odds,
+                'betting_available_france': True,  # Nouveau champ
+                'french_regulation_compliant': True  # Conforme réglementation française
             })
         
         return demo_matches
