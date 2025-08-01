@@ -669,6 +669,24 @@ curl -X POST "http://localhost:8000/api/data/collect" \
 # Get database statistics
 curl -X GET "http://localhost:8000/api/database/stats"
 
+# Get today's matches for France only
+curl -X GET "http://localhost:8000/api/matches/today-france"
+
+# Filter matches for French betting market
+curl -X POST "http://localhost:8000/api/matches/filter-france" \
+  -H "Content-Type: application/json" \
+  -d '[
+    {
+      "event_id": 12345,
+      "league_name": "Premier League",
+      "home_team": "Arsenal",
+      "away_team": "Chelsea",
+      "home_odds": 2.1,
+      "draw_odds": 3.4,
+      "away_odds": 3.2
+    }
+  ]'
+
 # Clear cache
 curl -X DELETE "http://localhost:8000/api/cache/similarity"
 ```
