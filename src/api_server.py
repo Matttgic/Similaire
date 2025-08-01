@@ -59,7 +59,8 @@ class OddsInput(BaseModel):
     over_25: float
     under_25: float
     
-    @validator('*')
+    @field_validator('home', 'draw', 'away', 'over_25', 'under_25')
+    @classmethod
     def validate_odds(cls, v):
         if v <= 1.0 or v > 1000:
             raise ValueError('Odds must be between 1.01 and 1000')
