@@ -921,7 +921,7 @@ def main():
                         
                         st.success(f"🔮 {predictions_count} prédictions générées")
                         time.sleep(1)
-                        st.experimental_rerun()
+                        st.rerun()
                 else:
                     st.error("❌ Aucun match trouvé pour aujourd'hui")
     
