@@ -891,10 +891,10 @@ def main():
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        if st.button("🔄 Actualiser les matchs du jour", type="primary", use_container_width=True):
-            with st.spinner("📡 Récupération des matchs du jour..."):
-                # Récupérer les matchs du jour
-                today_matches = data_collector.get_today_matches()
+        if st.button("🇫🇷 Actualiser les matchs du jour (France)", type="primary", use_container_width=True):
+            with st.spinner("📡 Récupération des matchs autorisés en France..."):
+                # Récupérer les matchs du jour conformes à la réglementation française
+                today_matches = data_collector.get_today_matches_france_only()
                 
                 if today_matches:
                     # Sauvegarder les matchs
