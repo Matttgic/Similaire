@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import random
 from datetime import datetime, timedelta
 import sys
 import os
@@ -17,7 +18,6 @@ import hashlib
 import threading
 from pathlib import Path
 import warnings
-import random
 
 # Supprimer les warnings pour un affichage plus propre
 warnings.filterwarnings('ignore')
