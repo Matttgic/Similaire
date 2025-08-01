@@ -362,7 +362,6 @@ async def get_today_matches_france():
         raise HTTPException(status_code=500, detail="Failed to get French matches")
 
 @app.post("/api/matches/filter-france")
-@monitor.monitor_function("filter_matches_france", "api")
 async def filter_matches_for_france(matches: List[Dict[str, Any]]):
     """Filtre une liste de matchs selon les régulations françaises"""
     try:
