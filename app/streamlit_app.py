@@ -491,6 +491,93 @@ class PinnacleDataCollector:
             })
         
         return demo_matches
+    
+    def get_today_matches_france_only(self) -> List[Dict[str, Any]]:
+        """
+        Récupère tous les matchs du jour disponibles pour les paris en France
+        """
+        try:
+            # Essayer de récupérer les matchs via l'API
+            all_matches = self.get_today_matches()
+            
+            if all_matches:
+                # Filtrer pour la France
+                french_matches = self.filter_matches_for_france(all_matches)
+                
+                if french_matches:
+                    st.info(f"🇫🇷 {len(french_matches)} matchs conformes à la réglementation française trouvés")
+                    return french_matches
+            
+            # Fallback: générer des matchs de démonstration français uniquement
+            st.info("🇫🇷 Génération de matchs de démonstration français")
+            return self._generate_demo_matches()
+            
+        except Exception as e:
+            st.error(f"Erreur lors de la récupération des matchs français: {e}")
+            return self._generate_demo_matches()
+    
+    def filter_matches_for_france(self, matches: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Filtre les matchs selon les régulations françaises de paris sportifs
+        
+        En France, l'ANJ (Autorité Nationale des Jeux) régule les paris sportifs.
+        Seules certaines compétitions et ligues sont autorisées.
+        """
+        # Ligues autorisées en France selon l'ANJ
+        french_authorized_leagues = {
+            # Ligues nationales principales des top 5 européens
+            'Ligue 1', 'Premier League', 'La Liga', 'Serie A', 'Bundesliga',
+            # Compétitions européennes majeures
+            'Champions League', 'Europa League', 'Conference League',
+            # Autres ligues européennes autorisées
+            'Eredivisie', 'Liga NOS', 'Pro League', 'Superliga',
+            # Compétitions internationales
+            'World Cup', 'European Championship', 'Nations League',
+            # Ligues françaises inférieures
+            'Ligue 2', 'National', 'National 2'
+        }
+        
+        # Équipes/clubs français (toujours autorisés dans leurs compétitions)
+        french_teams = {
+            'PSG', 'Lyon', 'Marseille', 'Monaco', 'Nice', 'Rennes', 'Lille', 
+            'Montpellier', 'Strasbourg', 'Nantes', 'Bordeaux', 'Saint-Étienne',
+            'Lens', 'Brest', 'Angers', 'Clermont', 'Troyes', 'Lorient', 'Metz'
+        }
+        
+        filtered_matches = []
+        
+        for match in matches:
+            league_name = match.get('league_name', '')
+            home_team = match.get('home_team', '')
+            away_team = match.get('away_team', '')
+            
+            # Vérifier si la ligue est autorisée
+            is_authorized_league = any(
+                authorized_league.lower() in league_name.lower() 
+                for authorized_league in french_authorized_leagues
+            )
+            
+            # Vérifier si une équipe française participe
+            has_french_team = (
+                home_team in french_teams or 
+                away_team in french_teams
+            )
+            
+            # Critères d'autorisation en France
+            if is_authorized_league or has_french_team:
+                # Ajouter des métadonnées de conformité
+                match_copy = match.copy()
+                match_copy.update({
+                    'betting_available_france': True,
+                    'french_regulation_compliant': True,
+                    'authorized_reason': (
+                        'authorized_league' if is_authorized_league else 'french_team_present'
+                    ),
+                    'country_restrictions': 'FR_ALLOWED'
+                })
+                filtered_matches.append(match_copy)
+        
+        return filtered_matches
 
 class OddsSimilarityEngine:
     """Moteur de similarité et prédictions automatiques"""
