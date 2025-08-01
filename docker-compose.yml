@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  pinnacle-betting-app:
+    build: .
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    environment:
+      - RAPIDAPI_KEY=${RAPIDAPI_KEY}
+      - DATABASE_PATH=/app/data/football_odds.db
+      - SIMILARITY_THRESHOLD=0.90
+      - MIN_SIMILAR_MATCHES=10
+    restart: unless-stopped
+    
+  # Service optionnel pour une base PostgreSQL en production
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: pinnacle_betting
+      POSTGRES_USER: pinnacle_user
+      POSTGRES_PASSWORD: pinnacle_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
