@@ -547,16 +547,73 @@ def check_health():
         print(f"Health check failed: {response.status_code}")
         return None
 
+# Get French matches only
+def get_french_matches():
+    url = f"{BASE_URL}/matches/today-france"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"Found {data['count']} matches available in France")
+        print(f"Regulation: {data['regulation_compliance']}")
+        return data['matches']
+    else:
+        print(f"Error getting French matches: {response.status_code}")
+        return None
+
+# Filter matches for France
+def filter_matches_for_france(matches_list):
+    url = f"{BASE_URL}/matches/filter-france"
+    
+    response = requests.post(url, json=matches_list)
+    
+    if response.status_code == 200:
+        data = response.json()
+        print(f"Filtered {data['original_count']} → {data['filtered_count']} matches")
+        print(f"Filter ratio: {data['filter_ratio']:.1f}%")
+        return data['filtered_matches']
+    else:
+        print(f"Error filtering matches: {response.status_code}")
+        return None
+
 # Usage
 if __name__ == "__main__":
     # Check API health
     health = check_health()
     
-    # Analyze similarity
+    # Get French-compliant matches
     if health and health['status'] == 'healthy':
-        results = analyze_similarity()
-        if results:
-            print(f"Analysis confidence: {results['analysis']['confidence']}%")
+        french_matches = get_french_matches()
+        if french_matches:
+            print(f"First match: {french_matches[0]['home_team']} vs {french_matches[0]['away_team']}")
+            print(f"League: {french_matches[0]['league_name']}")
+            print(f"France compliant: {french_matches[0]['french_regulation_compliant']}")
+        
+        # Example: Filter custom matches
+        sample_matches = [
+            {
+                "event_id": 1,
+                "league_name": "Premier League",
+                "home_team": "Arsenal",
+                "away_team": "Chelsea",
+                "home_odds": 2.1,
+                "draw_odds": 3.4,
+                "away_odds": 3.2
+            },
+            {
+                "event_id": 2,
+                "league_name": "Some Unknown League",
+                "home_team": "Team A",
+                "away_team": "Team B",
+                "home_odds": 1.9,
+                "draw_odds": 3.1,
+                "away_odds": 4.2
+            }
+        ]
+        
+        filtered = filter_matches_for_france(sample_matches)
+        if filtered:
+            print(f"Authorized matches in France: {len(filtered)}")
 ```
 
 ### JavaScript (fetch)
