@@ -284,7 +284,6 @@ async def compare_methods(odds: OddsInput):
         raise HTTPException(status_code=500, detail="Method comparison failed")
 
 @app.get("/api/database/stats")
-@monitor.monitor_function("get_database_stats", "api")
 async def get_database_stats():
     """Récupère les statistiques de la base de données"""
     try:
