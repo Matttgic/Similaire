@@ -445,6 +445,271 @@ class BackendAPITester:
         except Exception as e:
             self.log_test("CORS Configuration", False, f"Error: {str(e)}", 0)
     
+    def test_french_matches_endpoint(self):
+        """Test GET /api/matches/today-france endpoint"""
+        print("\n=== Testing French Matches Endpoint ===")
+        
+        try:
+            start_time = time.time()
+            response = requests.get(f"{self.base_url}/matches/today-france", timeout=30)
+            response_time = time.time() - start_time
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check required fields
+                required_fields = ['success', 'matches', 'count', 'country']
+                missing_fields = [field for field in required_fields if field not in data]
+                
+                if not missing_fields:
+                    self.log_test("French Matches - Required Fields", True, 
+                                f"All required fields present", response_time)
+                    
+                    # Check country is France
+                    if data.get('country') == 'France':
+                        self.log_test("French Matches - Country Field", True, 
+                                    f"Country: {data['country']}", response_time)
+                    else:
+                        self.log_test("French Matches - Country Field", False, 
+                                    f"Expected 'France', got: {data.get('country')}", response_time)
+                    
+                    # Check matches array
+                    matches = data.get('matches', [])
+                    if isinstance(matches, list):
+                        self.log_test("French Matches - Matches Array", True, 
+                                    f"Found {len(matches)} matches", response_time)
+                        
+                        # Check count matches array length
+                        if data.get('count') == len(matches):
+                            self.log_test("French Matches - Count Accuracy", True, 
+                                        f"Count matches array length: {len(matches)}", response_time)
+                        else:
+                            self.log_test("French Matches - Count Accuracy", False, 
+                                        f"Count {data.get('count')} != array length {len(matches)}", response_time)
+                        
+                        # Check French regulation fields in matches
+                        if matches:
+                            sample_match = matches[0]
+                            french_fields = ['betting_available_france', 'french_regulation_compliant', 'country_restrictions']
+                            present_french_fields = [field for field in french_fields if field in sample_match]
+                            
+                            if present_french_fields:
+                                self.log_test("French Matches - Regulation Fields", True, 
+                                            f"French fields present: {present_french_fields}", response_time)
+                            else:
+                                self.log_test("French Matches - Regulation Fields", False, 
+                                            "No French regulation fields found in matches", response_time)
+                            
+                            # Check odds fields
+                            odds_fields = ['home', 'draw', 'away', 'over_25', 'under_25']
+                            present_odds_fields = [field for field in odds_fields if field in sample_match]
+                            
+                            if len(present_odds_fields) >= 3:  # At least basic odds
+                                self.log_test("French Matches - Odds Fields", True, 
+                                            f"Odds fields present: {present_odds_fields}", response_time)
+                            else:
+                                self.log_test("French Matches - Odds Fields", False, 
+                                            f"Insufficient odds fields: {present_odds_fields}", response_time)
+                    else:
+                        self.log_test("French Matches - Matches Array", False, 
+                                    "Matches field is not an array", response_time)
+                else:
+                    self.log_test("French Matches - Required Fields", False, 
+                                f"Missing fields: {missing_fields}", response_time)
+                    
+            else:
+                self.log_test("French Matches - HTTP Status", False, 
+                            f"Expected 200, got {response.status_code}", response_time)
+                
+        except Exception as e:
+            self.log_test("French Matches - Connection", False, f"Error: {str(e)}", 0)
+    
+    def test_french_filter_endpoint(self):
+        """Test POST /api/matches/filter-france endpoint"""
+        print("\n=== Testing French Filter Endpoint ===")
+        
+        # Test cases for filtering
+        test_cases = [
+            {
+                "name": "Authorized Matches",
+                "data": [
+                    {
+                        "home_team": "PSG",
+                        "away_team": "Lyon",
+                        "league_name": "Ligue 1",
+                        "home": 2.1,
+                        "draw": 3.4,
+                        "away": 3.2,
+                        "over_25": 1.85,
+                        "under_25": 1.95
+                    },
+                    {
+                        "home_team": "Manchester United",
+                        "away_team": "Arsenal",
+                        "league_name": "Premier League",
+                        "home": 2.5,
+                        "draw": 3.1,
+                        "away": 2.8,
+                        "over_25": 1.9,
+                        "under_25": 1.9
+                    }
+                ]
+            },
+            {
+                "name": "Mixed Authorized/Unauthorized",
+                "data": [
+                    {
+                        "home_team": "PSG",
+                        "away_team": "Lyon",
+                        "league_name": "Ligue 1",
+                        "home": 2.1,
+                        "draw": 3.4,
+                        "away": 3.2
+                    },
+                    {
+                        "home_team": "Unknown Team A",
+                        "away_team": "Unknown Team B",
+                        "league_name": "Unknown League",
+                        "home": 2.5,
+                        "draw": 3.1,
+                        "away": 2.8
+                    }
+                ]
+            },
+            {
+                "name": "Empty Array",
+                "data": []
+            }
+        ]
+        
+        for test_case in test_cases:
+            try:
+                start_time = time.time()
+                response = requests.post(
+                    f"{self.base_url}/matches/filter-france",
+                    json=test_case["data"],
+                    headers={"Content-Type": "application/json"},
+                    timeout=30
+                )
+                response_time = time.time() - start_time
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    
+                    # Check required response fields
+                    required_fields = ['success', 'original_count', 'filtered_count', 'filtered_matches', 'filter_ratio']
+                    missing_fields = [field for field in required_fields if field not in data]
+                    
+                    if not missing_fields:
+                        self.log_test(f"French Filter - {test_case['name']} - Fields", True, 
+                                    f"All required fields present", response_time)
+                        
+                        # Check counts
+                        original_count = data.get('original_count', 0)
+                        filtered_count = data.get('filtered_count', 0)
+                        expected_original = len(test_case["data"])
+                        
+                        if original_count == expected_original:
+                            self.log_test(f"French Filter - {test_case['name']} - Original Count", True, 
+                                        f"Original count: {original_count}", response_time)
+                        else:
+                            self.log_test(f"French Filter - {test_case['name']} - Original Count", False, 
+                                        f"Expected {expected_original}, got {original_count}", response_time)
+                        
+                        # Check filtered count is reasonable
+                        if filtered_count <= original_count:
+                            self.log_test(f"French Filter - {test_case['name']} - Filtered Count", True, 
+                                        f"Filtered count: {filtered_count}", response_time)
+                        else:
+                            self.log_test(f"French Filter - {test_case['name']} - Filtered Count", False, 
+                                        f"Filtered count {filtered_count} > original {original_count}", response_time)
+                        
+                        # Check filter ratio calculation
+                        expected_ratio = (filtered_count / original_count * 100) if original_count > 0 else 0
+                        actual_ratio = data.get('filter_ratio', 0)
+                        
+                        if abs(expected_ratio - actual_ratio) < 0.1:  # Allow small floating point differences
+                            self.log_test(f"French Filter - {test_case['name']} - Filter Ratio", True, 
+                                        f"Filter ratio: {actual_ratio:.1f}%", response_time)
+                        else:
+                            self.log_test(f"French Filter - {test_case['name']} - Filter Ratio", False, 
+                                        f"Expected {expected_ratio:.1f}%, got {actual_ratio:.1f}%", response_time)
+                        
+                        # Check filtered matches have French regulation fields
+                        filtered_matches = data.get('filtered_matches', [])
+                        if filtered_matches:
+                            sample_match = filtered_matches[0]
+                            french_fields = ['betting_available_france', 'french_regulation_compliant']
+                            present_french_fields = [field for field in french_fields if field in sample_match]
+                            
+                            if present_french_fields:
+                                self.log_test(f"French Filter - {test_case['name']} - Regulation Metadata", True, 
+                                            f"French metadata added: {present_french_fields}", response_time)
+                            else:
+                                self.log_test(f"French Filter - {test_case['name']} - Regulation Metadata", False, 
+                                            "No French regulation metadata added", response_time)
+                    else:
+                        self.log_test(f"French Filter - {test_case['name']} - Fields", False, 
+                                    f"Missing fields: {missing_fields}", response_time)
+                        
+                else:
+                    self.log_test(f"French Filter - {test_case['name']} - HTTP Status", False, 
+                                f"Expected 200, got {response.status_code}", response_time)
+                    
+            except Exception as e:
+                self.log_test(f"French Filter - {test_case['name']}", False, f"Error: {str(e)}", 0)
+    
+    def test_french_filter_error_cases(self):
+        """Test POST /api/matches/filter-france with invalid data"""
+        print("\n=== Testing French Filter - Error Cases ===")
+        
+        error_test_cases = [
+            {
+                "name": "Invalid JSON",
+                "data": "invalid json string",
+                "expected_status": 422
+            },
+            {
+                "name": "Non-array Input",
+                "data": {"not": "an array"},
+                "expected_status": 422
+            }
+        ]
+        
+        for test_case in error_test_cases:
+            try:
+                start_time = time.time()
+                
+                if test_case["name"] == "Invalid JSON":
+                    # Send invalid JSON
+                    response = requests.post(
+                        f"{self.base_url}/matches/filter-france",
+                        data=test_case["data"],  # Send as string, not JSON
+                        headers={"Content-Type": "application/json"},
+                        timeout=10
+                    )
+                else:
+                    response = requests.post(
+                        f"{self.base_url}/matches/filter-france",
+                        json=test_case["data"],
+                        headers={"Content-Type": "application/json"},
+                        timeout=10
+                    )
+                
+                response_time = time.time() - start_time
+                
+                expected_status = test_case.get("expected_status", 400)
+                if response.status_code == expected_status:
+                    self.log_test(f"French Filter Error - {test_case['name']}", True, 
+                                f"Correctly returned {response.status_code}", response_time)
+                else:
+                    self.log_test(f"French Filter Error - {test_case['name']}", False, 
+                                f"Expected {expected_status}, got {response.status_code}", response_time)
+                    
+            except Exception as e:
+                self.log_test(f"French Filter Error - {test_case['name']}", False, 
+                            f"Error: {str(e)}", 0)
+    
     def run_all_tests(self):
         """Run all backend API tests"""
         print("🚀 Starting Comprehensive Backend API Testing")
