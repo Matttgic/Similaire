@@ -73,7 +73,8 @@ class SimilarityRequest(BaseModel):
     threshold: Optional[float] = 0.90
     min_matches: Optional[int] = 10
     
-    @validator('method')
+    @field_validator('method')
+    @classmethod
     def validate_method(cls, v):
         if v not in ['cosine', 'euclidean', 'percentage']:
             raise ValueError('Method must be one of: cosine, euclidean, percentage')
