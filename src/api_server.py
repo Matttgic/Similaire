@@ -343,6 +343,46 @@ async def get_collection_stats():
         logger.error(f"Error getting collection stats: {e}")
         raise HTTPException(status_code=500, detail="Failed to get collection stats")
 
+@app.get("/api/matches/today-france")
+@monitor.monitor_function("get_today_matches_france", "api")
+async def get_today_matches_france():
+    """Récupère les matchs du jour disponibles pour les paris en France"""
+    try:
+        matches = data_collector.get_today_matches_france_only()
+        
+        return {
+            "success": True,
+            "matches": matches,
+            "count": len(matches),
+            "country": "France",
+            "regulation_compliance": "ANJ (Autorité Nationale des Jeux)",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error getting French matches: {e}")
+        raise HTTPException(status_code=500, detail="Failed to get French matches")
+
+@app.post("/api/matches/filter-france")
+@monitor.monitor_function("filter_matches_france", "api")
+async def filter_matches_for_france(matches: List[Dict[str, Any]]):
+    """Filtre une liste de matchs selon les régulations françaises"""
+    try:
+        filtered_matches = data_collector.filter_matches_for_france(matches)
+        
+        return {
+            "success": True,
+            "original_count": len(matches),
+            "filtered_count": len(filtered_matches),
+            "filtered_matches": filtered_matches,
+            "filter_ratio": len(filtered_matches) / len(matches) * 100 if matches else 0,
+            "country": "France",
+            "regulation_compliance": "ANJ compliant",
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error filtering matches for France: {e}")
+        raise HTTPException(status_code=500, detail="Failed to filter matches for France")
+
 @app.delete("/api/cache/similarity")
 @monitor.monitor_function("clear_cache", "api")
 async def clear_similarity_cache():
