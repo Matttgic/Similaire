@@ -344,7 +344,6 @@ async def get_collection_stats():
         raise HTTPException(status_code=500, detail="Failed to get collection stats")
 
 @app.get("/api/matches/today-france")
-@monitor.monitor_function("get_today_matches_france", "api")
 async def get_today_matches_france():
     """Récupère les matchs du jour disponibles pour les paris en France"""
     try:
