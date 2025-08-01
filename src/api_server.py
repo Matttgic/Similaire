@@ -99,7 +99,8 @@ class DataCollectionRequest(BaseModel):
     max_events: Optional[int] = 1000
     source: Optional[str] = "current"  # current, historical
     
-    @validator('max_events')
+    @field_validator('max_events')
+    @classmethod
     def validate_max_events(cls, v):
         if v < 1 or v > 10000:
             raise ValueError('max_events must be between 1 and 10000')
