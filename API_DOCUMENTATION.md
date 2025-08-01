@@ -315,6 +315,84 @@ Get data collection statistics.
 }
 ```
 
+#### GET `/api/matches/today-france`
+Get today's matches available for betting in France (ANJ compliant).
+
+**Response:**
+```json
+{
+  "success": true,
+  "matches": [
+    {
+      "event_id": 50001,
+      "league_name": "Ligue 1",
+      "home_team": "PSG",
+      "away_team": "Lyon",
+      "start_time": "2024-01-01T20:00:00",
+      "match_date": "2024-01-01",
+      "home_odds": 1.75,
+      "draw_odds": 3.80,
+      "away_odds": 4.20,
+      "over_25_odds": 1.85,
+      "under_25_odds": 1.95,
+      "betting_available_france": true,
+      "french_regulation_compliant": true,
+      "country_restrictions": "FR_ALLOWED"
+    }
+  ],
+  "count": 12,
+  "country": "France",
+  "regulation_compliance": "ANJ (Autorité Nationale des Jeux)",
+  "timestamp": "2024-01-01T12:00:00.000Z"
+}
+```
+
+#### POST `/api/matches/filter-france`
+Filter a list of matches according to French betting regulations.
+
+**Request Body:**
+```json
+[
+  {
+    "event_id": 12345,
+    "league_name": "Premier League",
+    "home_team": "Arsenal",
+    "away_team": "Chelsea",
+    "home_odds": 2.1,
+    "draw_odds": 3.4,
+    "away_odds": 3.2
+  }
+]
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "original_count": 25,
+  "filtered_count": 18,
+  "filtered_matches": [
+    {
+      "event_id": 12345,
+      "league_name": "Premier League",
+      "home_team": "Arsenal",
+      "away_team": "Chelsea",
+      "home_odds": 2.1,
+      "draw_odds": 3.4,
+      "away_odds": 3.2,
+      "betting_available_france": true,
+      "french_regulation_compliant": true,
+      "authorized_reason": "authorized_league",
+      "country_restrictions": "FR_ALLOWED"
+    }
+  ],
+  "filter_ratio": 72.0,
+  "country": "France",
+  "regulation_compliance": "ANJ compliant",
+  "timestamp": "2024-01-01T12:00:00.000Z"
+}
+```
+
 ### 🗑️ Cache Management
 
 #### DELETE `/api/cache/similarity`
