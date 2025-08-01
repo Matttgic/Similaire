@@ -80,7 +80,8 @@ class SimilarityRequest(BaseModel):
             raise ValueError('Method must be one of: cosine, euclidean, percentage')
         return v
     
-    @validator('threshold')
+    @field_validator('threshold')
+    @classmethod
     def validate_threshold(cls, v):
         if not 0 <= v <= 1:
             raise ValueError('Threshold must be between 0 and 1')
