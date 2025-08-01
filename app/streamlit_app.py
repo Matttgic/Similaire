@@ -951,21 +951,49 @@ def main():
                     st.session_state.show_stats = False
                     st.rerun()
     
-    # Récupérer et afficher les matchs du jour avec prédictions
+    # Récupérer et afficher les matchs du jour avec prédictions - FRANCE UNIQUEMENT
     today_matches_df = db_manager.get_today_matches()
     
     if today_matches_df.empty:
-        st.info("📅 Aucun match programmé pour aujourd'hui. Cliquez sur 'Actualiser' pour récupérer les derniers matchs.")
+        st.info("📅 Aucun match programmé pour aujourd'hui en France. Cliquez sur 'Actualiser' pour récupérer les derniers matchs.")
         
-        # Bouton pour créer des matchs de démonstration
-        if st.button("🎮 Créer des matchs de démonstration"):
-            demo_matches = data_collector._generate_demo_matches()
+        # Bouton pour créer des matchs de démonstration français
+        if st.button("🇫🇷 Créer des matchs de démonstration (France uniquement)"):
+            # Utiliser la nouvelle méthode qui génère uniquement des matchs autorisés en France
+            demo_matches = data_collector.get_today_matches_france_only()
             for match in demo_matches:
                 db_manager.save_match(match)
-            st.success("✅ Matchs de démonstration créés!")
+            st.success(f"✅ {len(demo_matches)} matchs de démonstration créés (conformes réglementation française ANJ)!")
             st.rerun()
     else:
-        st.header(f"⚽ {len(today_matches_df)} matchs programmés aujourd'hui")
+        # Filtrer les matchs existants pour la France si nécessaire
+        if hasattr(data_collector, 'filter_matches_for_france'):
+            # Convertir DataFrame en liste de dictionnaires
+            matches_list = today_matches_df.to_dict('records')
+            
+            # Appliquer le filtre français
+            french_matches = data_collector.filter_matches_for_france(matches_list)
+            
+            if french_matches:
+                # Reconvertir en DataFrame
+                import pandas as pd
+                today_matches_df = pd.DataFrame(french_matches)
+                st.header(f"🇫🇷 {len(today_matches_df)} matchs autorisés pour les paris en France")
+                
+                # Afficher une note sur la réglementation
+                st.info("ℹ️ **Conformité française** : Seuls les matchs autorisés par l'ANJ (Autorité Nationale des Jeux) sont affichés selon la réglementation française des paris sportifs.")
+            else:
+                st.warning("⚠️ Aucun match disponible aujourd'hui ne respecte la réglementation française des paris sportifs.")
+                # Proposer de créer des matchs de démonstration français
+                if st.button("🇫🇷 Générer des matchs conformes à la réglementation française"):
+                    demo_matches = data_collector.get_today_matches_france_only()
+                    for match in demo_matches:
+                        db_manager.save_match(match)
+                    st.success(f"✅ {len(demo_matches)} matchs conformes générés!")
+                    st.rerun()
+                return
+        else:
+            st.header(f"⚽ {len(today_matches_df)} matchs programmés aujourd'hui")
         
         # Filtres
         col1, col2, col3 = st.columns(3)
