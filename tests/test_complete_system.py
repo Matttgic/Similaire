@@ -209,8 +209,8 @@ class TestSimilarityEngine(unittest.TestCase):
     
     def test_similarity_calculations(self):
         """Test des différentes méthodes de similarité"""
-        vector1 = [2.10, 3.40, 3.20, 1.85, 1.95]
-        vector2 = [2.15, 3.35, 3.15, 1.90, 1.90]
+        vector1 = np.array([2.10, 3.40, 3.20, 1.85, 1.95])
+        vector2 = np.array([2.15, 3.35, 3.15, 1.90, 1.90])
         
         # Test cosinus
         similarity_cosine = self.engine.calculate_similarity_cosine(vector1, vector2)
