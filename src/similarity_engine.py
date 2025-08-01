@@ -235,8 +235,8 @@ class OddsSimilarityEngine:
                 total_btts = len(btts_results)
                 analysis['btts_analysis'] = {
                     'matches_with_btts_results': total_btts,
-                    'btts_
-'count': btts_yes_count,
+                    'btts_yes': {
+                        'count': btts_yes_count,
                         'percentage': btts_yes_count / total_btts * 100
                     },
                     'btts_no': {
