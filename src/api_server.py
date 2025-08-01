@@ -161,7 +161,6 @@ async def metrics_middleware(request: Request, call_next):
 # Routes de l'API
 
 @app.get("/api/health")
-@monitor.monitor_function("health_check", "api")
 async def health_check():
     """Vérification de l'état de santé de l'API"""
     health_status = monitor.check_system_health()
