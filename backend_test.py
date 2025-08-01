@@ -724,6 +724,11 @@ class BackendAPITester:
         self.test_performance()
         self.test_cors_configuration()
         
+        # NEW: Test French betting regulation endpoints
+        self.test_french_matches_endpoint()
+        self.test_french_filter_endpoint()
+        self.test_french_filter_error_cases()
+        
         # Print summary
         print("\n" + "=" * 60)
         print("📊 TEST SUMMARY")
