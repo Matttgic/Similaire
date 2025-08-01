@@ -473,3 +473,182 @@ class PinnacleDataCollector:
         # Pour l'instant, on peut la laisser vide ou utiliser une autre source
         # TODO: Implémenter avec une source de résultats fiable
         self.logger.info("Results update completed (not implemented yet)")
+    
+    def _generate_demo_matches(self) -> List[Dict[str, Any]]:
+        """Génère des matchs de démonstration pour aujourd'hui - FRANCE UNIQUEMENT"""
+        today = datetime.now().strftime('%Y-%m-%d')
+        
+        demo_matches = []
+        # Ligues autorisées en France pour les paris sportifs selon l'ANJ
+        french_authorized_leagues = {
+            'Ligue 1': ['PSG', 'Lyon', 'Marseille', 'Monaco', 'Nice', 'Rennes', 'Lille', 'Montpellier', 'Strasbourg', 'Nantes'],
+            'Premier League': ['Arsenal', 'Chelsea', 'Liverpool', 'Man City', 'Man United', 'Tottenham', 'Brighton', 'Newcastle'],
+            'La Liga': ['Barcelona', 'Real Madrid', 'Atletico', 'Valencia', 'Sevilla', 'Betis', 'Villarreal', 'Real Sociedad'],
+            'Serie A': ['Juventus', 'Milan', 'Inter', 'Napoli', 'Roma', 'Lazio', 'Atalanta', 'Fiorentina'],
+            'Bundesliga': ['Bayern', 'Dortmund', 'Leipzig', 'Leverkusen', 'Frankfurt', 'Wolfsburg', 'Stuttgart', 'Hoffenheim'],
+            'Champions League': ['PSG', 'Monaco', 'Barcelona', 'Real Madrid', 'Bayern', 'Man City', 'Liverpool', 'Milan'],
+            'Europa League': ['Lyon', 'Marseille', 'Nice', 'Arsenal', 'Man United', 'Tottenham', 'Valencia', 'Roma']
+        }
+        
+        # Générer 12 matchs pour aujourd'hui (ligues autorisées en France)
+        for i in range(12):
+            league = random.choice(list(french_authorized_leagues.keys()))
+            league_teams = french_authorized_leagues[league]
+            
+            team1 = random.choice(league_teams)
+            team2 = random.choice([t for t in league_teams if t != team1])
+            
+            # Générer des cotes réalistes
+            home_strength = random.uniform(0.3, 0.7)
+            away_strength = 1 - home_strength
+            draw_prob = random.uniform(0.15, 0.35)
+            
+            # Normaliser et convertir en cotes
+            total_prob = home_strength + away_strength + draw_prob
+            home_prob = home_strength / total_prob
+            away_prob = away_strength / total_prob
+            draw_prob = draw_prob / total_prob
+            
+            # Ajouter marge bookmaker (typique des opérateurs français)
+            margin = random.uniform(1.05, 1.12)
+            home_odds = round((1 / home_prob) * margin, 2)
+            draw_odds = round((1 / draw_prob) * margin, 2)
+            away_odds = round((1 / away_prob) * margin, 2)
+            
+            # Cotes O/U 2.5 
+            over_prob = random.uniform(0.45, 0.65)
+            under_prob = 1 - over_prob
+            over_25_odds = round((1 / over_prob) * random.uniform(1.05, 1.10), 2)
+            under_25_odds = round((1 / under_prob) * random.uniform(1.05, 1.10), 2)
+            
+            # Heure du match
+            hour = random.randint(14, 21)
+            minute = random.choice([0, 15, 30, 45])
+            
+            demo_matches.append({
+                'event_id': 50000 + i,
+                'league_name': league,
+                'home_team': team1,
+                'away_team': team2,
+                'start_time': f"{today}T{hour:02d}:{minute:02d}:00",
+                'match_date': today,
+                'home_odds': home_odds,
+                'draw_odds': draw_odds,
+                'away_odds': away_odds,
+                'over_25_odds': over_25_odds,
+                'under_25_odds': under_25_odds,
+                'betting_available_france': True,  # Disponible pour paris en France
+                'french_regulation_compliant': True,  # Conforme réglementation ANJ
+                'country_restrictions': 'FR_ALLOWED'  # Marqueur de restriction géographique
+            })
+        
+        return demo_matches
+    
+    def filter_matches_for_france(self, matches: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Filtre les matchs selon les régulations françaises de paris sportifs
+        
+        En France, l'ANJ (Autorité Nationale des Jeux) régule les paris sportifs.
+        Seules certaines compétitions et ligues sont autorisées.
+        """
+        # Ligues autorisées en France selon l'ANJ
+        french_authorized_leagues = {
+            # Ligues nationales principales des top 5 européens
+            'Ligue 1', 'Premier League', 'La Liga', 'Serie A', 'Bundesliga',
+            # Compétitions européennes majeures
+            'Champions League', 'Europa League', 'Conference League',
+            # Autres ligues européennes autorisées
+            'Eredivisie', 'Liga NOS', 'Pro League', 'Superliga',
+            # Compétitions internationales
+            'World Cup', 'European Championship', 'Nations League',
+            # Ligues françaises inférieures
+            'Ligue 2', 'National', 'National 2'
+        }
+        
+        # Équipes/clubs français (toujours autorisés dans leurs compétitions)
+        french_teams = {
+            'PSG', 'Lyon', 'Marseille', 'Monaco', 'Nice', 'Rennes', 'Lille', 
+            'Montpellier', 'Strasbourg', 'Nantes', 'Bordeaux', 'Saint-Étienne',
+            'Lens', 'Brest', 'Angers', 'Clermont', 'Troyes', 'Lorient', 'Metz'
+        }
+        
+        filtered_matches = []
+        
+        for match in matches:
+            league_name = match.get('league_name', '')
+            home_team = match.get('home_team', '')
+            away_team = match.get('away_team', '')
+            
+            # Vérifier si la ligue est autorisée
+            is_authorized_league = any(
+                authorized_league.lower() in league_name.lower() 
+                for authorized_league in french_authorized_leagues
+            )
+            
+            # Vérifier si une équipe française participe
+            has_french_team = (
+                home_team in french_teams or 
+                away_team in french_teams
+            )
+            
+            # Critères d'autorisation en France
+            if is_authorized_league or has_french_team:
+                # Ajouter des métadonnées de conformité
+                match_copy = match.copy()
+                match_copy.update({
+                    'betting_available_france': True,
+                    'french_regulation_compliant': True,
+                    'authorized_reason': (
+                        'authorized_league' if is_authorized_league else 'french_team_present'
+                    ),
+                    'country_restrictions': 'FR_ALLOWED'
+                })
+                filtered_matches.append(match_copy)
+            else:
+                # Match non autorisé en France
+                self.logger.debug(
+                    f"Match filtered out for France: {home_team} vs {away_team} "
+                    f"in {league_name} - Not authorized by ANJ"
+                )
+        
+        self.logger.info(
+            f"France filter: {len(filtered_matches)}/{len(matches)} matches authorized "
+            f"for French betting market"
+        )
+        
+        return filtered_matches
+    
+    def get_today_matches_france_only(self) -> List[Dict[str, Any]]:
+        """
+        Récupère tous les matchs du jour disponibles pour les paris en France
+        """
+        try:
+            # Essayer de récupérer les matchs via l'API
+            markets_data = self.get_markets()
+            
+            if markets_data and 'events' in markets_data:
+                events = markets_data['events']
+                self.logger.info(f"Retrieved {len(events)} events from API")
+                
+                # Convertir les événements API en format standard
+                matches = []
+                for event in events:
+                    match_data = self.extract_odds_from_event(event)
+                    if match_data and self._has_complete_odds(match_data):
+                        matches.append(match_data)
+                
+                # Filtrer pour la France
+                french_matches = self.filter_matches_for_france(matches)
+                
+                if french_matches:
+                    self.logger.info(f"Found {len(french_matches)} French-authorized matches")
+                    return french_matches
+            
+            # Fallback: générer des matchs de démonstration (France uniquement)
+            self.logger.info("No API data available, generating French demo matches")
+            return self._generate_demo_matches()
+            
+        except Exception as e:
+            self.logger.error(f"Error getting today's matches for France: {e}")
+            # En cas d'erreur, retourner des matchs de démonstration
+            return self._generate_demo_matches()
