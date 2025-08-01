@@ -87,7 +87,8 @@ class SimilarityRequest(BaseModel):
             raise ValueError('Threshold must be between 0 and 1')
         return v
     
-    @validator('min_matches')
+    @field_validator('min_matches')
+    @classmethod
     def validate_min_matches(cls, v):
         if v < 1 or v > 100:
             raise ValueError('min_matches must be between 1 and 100')
